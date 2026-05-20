@@ -2,7 +2,7 @@ public abstract class Jugador implements Visualizador {
     protected String nombre;
     protected String equipo;
     protected int juegosGanados;
-    protected String rol; // "Espia" o "Espia Maestro"
+    protected String rol; // "Espia" o "Espia Maestro" lol
 
     public Jugador(String nombre) {
         this.nombre = nombre;
