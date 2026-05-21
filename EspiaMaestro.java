@@ -4,6 +4,7 @@ public class EspiaMaestro extends Jugador {
 
     public EspiaMaestro(String nombre) {
         super(nombre);
+        this.rol = "Espía Maestro"; // FIX: asignar rol
     }
 
     public void revelarPatronInicio(Tablero tablero, Scanner scanner) {
@@ -11,12 +12,12 @@ public class EspiaMaestro extends Jugador {
         System.out.println("  PANTALLA SECRETA PARA EL ESPÍA MAESTRO " + equipo + ": " + nombre.toUpperCase());
         System.out.println("=======================================================");
         System.out.println("Los demás jugadores deben apartar la mirada ahora.\n");
-        
+
         mostrarPatronSecreto(tablero);
 
         System.out.println("Toma una foto o memoriza el patrón.");
         System.out.print("Presiona ENTER cuando estés listo... ");
-        scanner.next();
+        scanner.nextLine(); // FIX: nextLine en lugar de next() para capturar Enter correctamente
         limpiarConsola();
     }
 
@@ -26,8 +27,7 @@ public class EspiaMaestro extends Jugador {
                 for (int col = 0; col < 5; col++) {
                     Carta carta = tablero.getCarta(fila, col);
                     boolean estadoOriginal = carta.isRevelada();
-                    
-                    carta.revelada = true; 
+                    carta.revelada = true;
                     System.out.print(carta.rellenarCarta(linea) + " ");
                     carta.revelada = estadoOriginal;
                 }
@@ -38,9 +38,7 @@ public class EspiaMaestro extends Jugador {
     }
 
     private void limpiarConsola() {
-        for (int i = 0; i < 50; i++) {
-            System.out.println();
-        }
+        for (int i = 0; i < 50; i++) System.out.println();
         System.out.println("=== EL JUEGO HA COMENZADO. EL REVERSO SECRETO HA SIDO OCULTADO ===\n");
     }
 }
