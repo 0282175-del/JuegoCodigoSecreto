@@ -31,18 +31,18 @@ public class Carta {
     public String rellenarCarta(int numeroLinea) {
         if (!revelada) {
             switch (numeroLinea) {
-                case 1: return "┌═══════┐";
-                case 2: return "║" + palabra + "║"; 
-                case 3: return "└═══════┘";
+                case 1: return "╔════════╗";
+                case 2: return "║ " + palabra + " ║"; 
+                case 3: return "╚════════╝";
             }
         } else {
             String color = obtenerColorANSI();
             
             // Le aplicamos el color a cada parte de la estructura para un efecto de loseta completa
             switch (numeroLinea) {
-                case 1: return color + "╔═══════╗" + ANSI_RESET;
-                case 2: return color + "║███████║" + ANSI_RESET;
-                case 3: return color + "╚═══════╝" + ANSI_RESET;
+                case 1: return color + "╔════════╗" + ANSI_RESET;
+                case 2: return color + "║████████║" + ANSI_RESET;
+                case 3: return color + "╚════════╝" + ANSI_RESET;
             }
         }
         return "";

@@ -15,5 +15,5 @@ public class CartaAsesino extends Carta {
     public String revelar() {
         this.revelada = true;
         return "Fin del juego! Has revelado al asesino. Tu equipo pierde inmediatamente.";
-    }
+    } 
 }

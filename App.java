@@ -2,7 +2,7 @@ import java.util.Scanner;
 import java.util.Random;
 
 public class App {
-   static String[] myPalabras = {
+    static String[] myPalabras = {
         "AGUILA", "ANILLO", "ASTROS", "AZUCAR", "BALCON", "BANANA", "BARCOS", "BARRIL", "BASURA", "BEBIDA",
         "BODEGA", "BOSQUE", "BRUJAS", "BUTACA", "CABEZA", "CACTUS", "CADENA", "CAJERO", "CALLES", "CAMARA",
         "CAMINO", "CAMPOS", "CEREZA", "CIERVO", "CIUDAD", "COCHES", "COHETE", "CONEJO", "CORONA", "CORREO",
@@ -19,167 +19,231 @@ public class App {
         Scanner scanner = new Scanner(System.in);
         Random random = new Random();
 
-        // --- Registro de jugadores ---
-        System.out.print("¿Cuántos jugadores van a jugar? (mínimo 4): ");
+        System.out.println("======================================");
+        System.out.println("      BIENVENIDO A CÓDIGO SECRETO     ");
+        System.out.println("======================================");
+
+        System.out.print("¿Cuántos jugadores van a participar? (mínimo 4): ");
         int numJugadores = scanner.nextInt();
-        scanner.nextLine(); // FIX: limpiar buffer después de nextInt
+        scanner.nextLine(); 
 
-        String[] nombres = new String[numJugadores];
-        for (int i = 0; i < numJugadores; i++) {
-            System.out.print("Introduce el nombre del jugador " + (i + 1) + ": ");
-            nombres[i] = scanner.nextLine();
-        }
-
-       
         Jugador[] jugadores = new Jugador[numJugadores];
         for (int i = 0; i < numJugadores; i++) {
-            jugadores[i] = new Espia(nombres[i]);
+            System.out.print("Nombre del jugador " + (i + 1) + ": ");
+            String nombre = scanner.nextLine();
+            jugadores[i] = new Espia(nombre); 
         }
 
-        
-        System.out.println("\nAsignación de equipos:");
-        for (int i = 0; i < numJugadores; i++) {
-            System.out.print(jugadores[i].getNombre() + " ¿a qué equipo perteneces? (rojo/azul): ");
-            String equipo = scanner.nextLine();
-            jugadores[i].asignarEquipo(equipo);
-        }
+        Juego[] historialPartidas = new Juego[5];
+        int contadorPartidas = 0;
 
-      
-        
-        int[] indicesRojo = new int[numJugadores];
-        int[] indicesAzul = new int[numJugadores];
-        int cntRojo = 0, cntAzul = 0;
-        for (int i = 0; i < numJugadores; i++) {
-            if (jugadores[i].getEquipo().equals("ROJO")) indicesRojo[cntRojo++] = i;
-            else indicesAzul[cntAzul++] = i;
-        }
+        boolean seguirJugando = true;
 
-        // Elegir maestro aleatorio de cada equipo y convertirlo
-        int iMaestroRojo = indicesRojo[random.nextInt(cntRojo)];
-        int iMaestroAzul = indicesAzul[random.nextInt(cntAzul)];
+        while (seguirJugando && contadorPartidas < 5) {
+            System.out.println("\n=======================================");
+            System.out.println("        INICIANDO PARTIDA # " + (contadorPartidas + 1));
+            System.out.println("=======================================");
 
-        jugadores[iMaestroRojo] = new EspiaMaestro(nombres[iMaestroRojo]);
-        jugadores[iMaestroRojo].asignarEquipo("ROJO");
+            historialPartidas[contadorPartidas] = new Juego(contadorPartidas + 1);
 
-        jugadores[iMaestroAzul] = new EspiaMaestro(nombres[iMaestroAzul]);
-        jugadores[iMaestroAzul].asignarEquipo("AZUL");
-
-        System.out.println("\n=== Roles asignados ===");
-        for (int i = 0; i < numJugadores; i++) {
-            jugadores[i].mostrarInformacion();
-        }
-
-        // Buscar maestros por equipo
-        EspiaMaestro maestroRojo = null;
-        EspiaMaestro maestroAzul = null;
-        for (int i = 0; i < numJugadores; i++) {
-            if (jugadores[i] instanceof EspiaMaestro) {
-                if (jugadores[i].getEquipo().equals("ROJO")) {
-                    maestroRojo = (EspiaMaestro) jugadores[i];
-                } else {
-                    maestroAzul = (EspiaMaestro) jugadores[i];
-                }
+            int[] indicesAleatorios = new int[numJugadores];
+            for (int i = 0; i < numJugadores; i++) indicesAleatorios[i] = i;
+            
+            for (int i = numJugadores - 1; i > 0; i--) {
+                int j = random.nextInt(i + 1);
+                int temp = indicesAleatorios[i];
+                indicesAleatorios[i] = indicesAleatorios[j];
+                indicesAleatorios[j] = temp;
             }
-        }
 
-       //tablero 
-        Tablero tablero = new Tablero(myPalabras);
-        maestroRojo.revelarPatronInicio(tablero, scanner);
-        maestroAzul.revelarPatronInicio(tablero, scanner);
+            int vanARojo = (numJugadores % 2 == 0) ? (numJugadores / 2) : (numJugadores / 2) + 1;
 
-        // --- Fase de juego ---
-        String equipoActual = "ROJO";
-        boolean juegoTerminado = false;
-        int cartasRojas = 9;
-        int cartasAzules = 8;
-
-        
-        int turnoRojo = 0;
-        int turnoAzul = 0;
-
-        while (!juegoTerminado) {
-            System.out.println("\n=== Turno del equipo " + equipoActual + " ===");
-            System.out.println("Cartas rojas restantes: " + cartasRojas + " | Cartas azules restantes: " + cartasAzules);
-            tablero.mostrarTablero();
-
-            // recopilar espías del equipo actual y rotar entre ellos
-            Espia[] espias = new Espia[numJugadores];
-            int numEspias = 0;
             for (int i = 0; i < numJugadores; i++) {
-                if (jugadores[i] instanceof Espia
-                        && !(jugadores[i] instanceof EspiaMaestro)
-                        && jugadores[i].getEquipo().equals(equipoActual)) {
-                    espias[numEspias++] = (Espia) jugadores[i];
+                int idx = indicesAleatorios[i];
+                String nombreActual = jugadores[idx].getNombre();
+                int puntosActuales = jugadores[idx].getJuegosGanados();
+                
+                jugadores[idx] = new Espia(nombreActual);
+                
+                for (int p = 0; p < puntosActuales; p++) {
+                    jugadores[idx].incrementarGanados();
                 }
-            }
 
-            if (numEspias > 0) {
-                // Rotar turno según el equipo
-                int turnoActual;
-                if (equipoActual.equals("ROJO")) {
-                    turnoActual = turnoRojo % numEspias;
-                    turnoRojo++;
+                if (i < vanARojo) {
+                    jugadores[idx].asignarEquipo("ROJO");
                 } else {
-                    turnoActual = turnoAzul % numEspias;
-                    turnoAzul++;
+                    jugadores[idx].asignarEquipo("AZUL");
                 }
-                espias[turnoActual].adivinarPalabra(tablero, scanner);
-            } else {
-                System.out.println("No hay espías disponibles para el equipo " + equipoActual);
             }
 
-            // recalcular cartas restantes después de cada turno
-            cartasRojas = 0;
-            cartasAzules = 0;
-            for (int f = 0; f < 5; f++) {
-                for (int c = 0; c < 5; c++) {
-                    Carta carta = tablero.getCarta(f, c);
-                    if (!carta.isRevelada()) {
-                        if (carta.getTipo() == 1) cartasRojas++;
-                        if (carta.getTipo() == 2) cartasAzules++;
+            int posAleatoriaRoja = random.nextInt(vanARojo);
+            int idxMaestroRojo = indicesAleatorios[posAleatoriaRoja];
+            
+            int posAleatoriaAzul = vanARojo + random.nextInt(numJugadores - vanARojo);
+            int idxMaestroAzul = indicesAleatorios[posAleatoriaAzul];
+
+            String nRojo = jugadores[idxMaestroRojo].getNombre();
+            int pRojo = jugadores[idxMaestroRojo].getJuegosGanados();
+            jugadores[idxMaestroRojo] = new EspiaMaestro(nRojo);
+            jugadores[idxMaestroRojo].asignarEquipo("ROJO");
+            for (int p = 0; p < pRojo; p++) jugadores[idxMaestroRojo].incrementarGanados();
+
+            String nAzul = jugadores[idxMaestroAzul].getNombre();
+            int pAzul = jugadores[idxMaestroAzul].getJuegosGanados();
+            jugadores[idxMaestroAzul] = new EspiaMaestro(nAzul);
+            jugadores[idxMaestroAzul].asignarEquipo("AZUL");
+            for (int p = 0; p < pAzul; p++) jugadores[idxMaestroAzul].incrementarGanados();
+
+            System.out.println("\n=== ROLES Y EQUIPOS ASIGNADOS ===");
+            for (Jugador j : jugadores) {
+                j.mostrarInformacion(); 
+            }
+
+            Tablero tablero = new Tablero(myPalabras);
+
+            for (Jugador j : jugadores) {
+                if (j instanceof EspiaMaestro) {
+                    ((EspiaMaestro) j).revelarPatronInicio(tablero, scanner);
+                }
+            }
+
+            String equipoActual = "ROJO";
+            boolean juegoTerminado = false;
+
+            while (!juegoTerminado) {
+                int cartasRojasRestantes = 0;
+                int cartasAzulesRestantes = 0;
+
+                for (int f = 0; f < 5; f++) {
+                    for (int c = 0; c < 5; c++) {
+                        Carta carta = tablero.getCarta(f, c);
+                        if (!carta.isRevelada()) {
+                            if (carta.getTipo() == 1) cartasRojasRestantes++;
+                            if (carta.getTipo() == 2) cartasAzulesRestantes++;
+                        }
                     }
                 }
-            }
 
-            // verificar si el equipo actual reveló al asesino
-            for (int f = 0; f < 5 && !juegoTerminado; f++) {
-                for (int c = 0; c < 5 && !juegoTerminado; c++) {
-                    Carta carta = tablero.getCarta(f, c);
-                    if (carta.getTipo() == 4 && carta.isRevelada()) {
-                        System.out.println("¡El equipo " + equipoActual + " reveló al asesino! ¡Pierden!");
+                System.out.println("\n---------------------------------");
+                System.out.println("  TURNO DEL EQUIPO: " + equipoActual);
+                System.out.println("  [Rojas restantes: " + cartasRojasRestantes + " | Azules restantes: " + cartasAzulesRestantes + "]");
+                System.out.println("---------------------------------");
+                tablero.mostrarTablero();
+
+                Jugador jugadorTurno = null;
+                for (Jugador j : jugadores) {
+                    if (j.getEquipo().equals(equipoActual) && j instanceof Espia && !(j instanceof EspiaMaestro)) {
+                        jugadorTurno = j;
+                        break;
+                    }
+                }
+
+                if (jugadorTurno == null) {
+                    for (Jugador j : jugadores) {
+                        if (j.getEquipo().equals(equipoActual)) {
+                            jugadorTurno = j;
+                            break;
+                        }
+                    }
+                }
+
+                if (jugadorTurno instanceof Espia) {
+                    ((Espia) jugadorTurno).adivinarPalabra(tablero, scanner);
+                }
+
+            
+                for (int f = 0; f < 5 && !juegoTerminado; f++) {
+                    for (int c = 0; c < 5; c++) {
+                        Carta carta = tablero.getCarta(f, c);
+                        
+                        if (carta instanceof CartaAsesino && carta.isRevelada()) {
+                            
+                            System.out.println("\n=================================================");
+                            System.out.println("           TABLERO FINAL DE LA PARTIDA           ");
+                            System.out.println("=================================================");
+                            tablero.mostrarTablero();
+
+                            String equipoGanador = equipoActual.equals("ROJO") ? "AZUL" : "ROJO";
+                            System.out.println("¡Victoria absoluta para el equipo " + equipoGanador + "!");
+                            
+                            historialPartidas[contadorPartidas].registrarGanador(equipoGanador);
+
+                            for (Jugador j : jugadores) {
+                                if (j.getEquipo().equals(equipoGanador)) {
+                                    j.incrementarGanados();
+                                }
+                            }
+                            juegoTerminado = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!juegoTerminado) {
+                    int r = 0, a = 0;
+                    for (int f = 0; f < 5; f++) {
+                        for (int c = 0; c < 5; c++) {
+                            Carta cc = tablero.getCarta(f, c);
+                            if (!cc.isRevelada()) {
+                                if (cc.getTipo() == 1) r++;
+                                if (cc.getTipo() == 2) a++;
+                            }
+                        }
+                    }
+
+                    if (r == 0) {
+                        System.out.println("\n¡El equipo ROJO ha ganado la partida!");
+                        historialPartidas[contadorPartidas].registrarGanador("ROJO");
+                        for (Jugador j : jugadores) {
+                            if (j.getEquipo().equals("ROJO")) j.incrementarGanados();
+                        }
+                        juegoTerminado = true;
+                    } else if (a == 0) {
+                        System.out.println("\n¡El equipo AZUL ha ganado la partida!");
+                        historialPartidas[contadorPartidas].registrarGanador("AZUL");
+                        for (Jugador j : jugadores) {
+                            if (j.getEquipo().equals("AZUL")) j.incrementarGanados();
+                        }
                         juegoTerminado = true;
                     }
                 }
-            }
 
-           // verificar si algún equipo ganó al revelar todas sus cartas
-            if (!juegoTerminado) {
-                if (cartasRojas == 0) {
-                    System.out.println("¡Ganó el equipo ROJO!");
-                    for (int i = 0; i < numJugadores; i++) {
-                        if (jugadores[i].getEquipo().equals("ROJO")) jugadores[i].incrementarGanados();
-                    }
-                    juegoTerminado = true;
-                } else if (cartasAzules == 0) {
-                    System.out.println("¡Ganó el equipo AZUL!");
-                    for (int i = 0; i < numJugadores; i++) {
-                        if (jugadores[i].getEquipo().equals("AZUL")) jugadores[i].incrementarGanados();
-                    }
-                    juegoTerminado = true;
+                if (!juegoTerminado) {
+                    equipoActual = equipoActual.equals("ROJO") ? "AZUL" : "ROJO";
                 }
             }
 
-            
-            if (!juegoTerminado) {
-                equipoActual = equipoActual.equals("ROJO") ? "AZUL" : "ROJO";
+            contadorPartidas++;
+
+            System.out.println("\n===============================================");
+            System.out.println("     PUNTUACIONES INDIVIDUALES ACUMULADAS      ");
+            System.out.println("===============================================");
+            for (Jugador j : jugadores) {
+                System.out.println(" -> " + j.getNombre() + " | Partidas Totales Ganadas: " + j.getJuegosGanados());
+            }
+            System.out.println("=====================================================");
+
+            if (contadorPartidas < 5) {
+                System.out.print("\n¿Desean jugar otra ronda? (S/N): ");
+                String respuesta = scanner.nextLine().trim().toUpperCase();
+                if (!respuesta.equals("S")) {
+                    seguirJugando = false;
+                }
+            } else {
+                System.out.println("\nSe ha completado el espacio máximo para 5 juegos en el arreglo.");
+                seguirJugando = false;
             }
         }
 
-        
-        System.out.println("--fin del juego---");
-        for (int i = 0; i < numJugadores; i++) {
-            jugadores[i].mostrarInformacion();
+        System.out.println("\n======================================");
+        System.out.println("       PUNTUACION TOTAL FINAL      ");
+        System.out.println("========================================");
+        for (int i = 0; i < contadorPartidas; i++) {
+            historialPartidas[i].mostrarResumen();
         }
+        System.out.println("=============================================");
+
+        System.out.println("\n¡Gracias por jugar! Proceso terminado con éxito.");
         scanner.close();
     }
 }
